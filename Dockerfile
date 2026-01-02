@@ -7,12 +7,20 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-COPY package.json package-lock.json* ./
+COPY package.json pnpm-lock.yaml* ./
 
-RUN npm ci --omit=dev && npm cache clean --force
+# Install pnpm
+RUN npm install -g pnpm
+
+# Install all dependencies (including dev for build)
+RUN pnpm install --frozen-lockfile && pnpm store prune
 
 COPY . .
 
-RUN npm run build
+# Build the application
+RUN pnpm run build
 
-CMD ["npm", "run", "docker-start"]
+# Remove dev dependencies after build to reduce image size
+RUN pnpm prune --prod && pnpm store prune
+
+CMD ["pnpm", "run", "docker-start"]
