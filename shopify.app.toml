@@ -13,20 +13,16 @@ include_config_on_deploy = true
 api_version = "2026-04"
 
   [[webhooks.subscriptions]]
-  topics = [ "app/uninstalled" ]
-  uri = "/webhooks/app/uninstalled"
-
-  [[webhooks.subscriptions]]
   topics = [ "app/scopes_update" ]
   uri = "/webhooks/app/scopes_update"
 
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks/app/uninstalled"
+
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-# Required scopes for Scanventory:
-# - read_products: To match products by barcode or SKU
-# - write_inventory: To update inventory levels via inventoryAdjustQuantities mutation
-# - read_locations: To support multi-location inventory management
-scopes = "read_products,write_products,read_inventory, write_inventory,read_customers,read_locations"
+scopes = "write_products"
 
 [auth]
 redirect_urls = [ "https://example.com/api/auth" ]

@@ -56,7 +56,7 @@ This document tracks the development progress of Scanventory, a Shopify app for 
   - `product_cache` - Cached product data for faster lookups
   - `location_cache` - Cached location data
   - `job` - Generic job table for background tasks (v2)
-- [ ] Build reusable API client module for Shopify REST and GraphQL
+- [x] Build reusable API client module for Shopify REST and GraphQL
 - [ ] Implement uninstall webhook endpoint
   - [Webhook security](https://shopify.dev/docs/apps/security/webhooks)
   - [App uninstalled webhook](https://shopify.dev/docs/apps/build/webhooks/subscribe)
