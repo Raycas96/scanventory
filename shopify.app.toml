@@ -26,7 +26,7 @@ api_version = "2026-04"
 # - read_products: To match products by barcode or SKU
 # - write_inventory: To update inventory levels via inventoryAdjustQuantities mutation
 # - read_locations: To support multi-location inventory management
-scopes = "read_products,write_inventory,read_locations"
+scopes = "read_products,write_products,read_inventory, write_inventory,read_customers,read_locations"
 
 [auth]
 redirect_urls = [ "https://example.com/api/auth" ]

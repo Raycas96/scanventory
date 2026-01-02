@@ -15,7 +15,9 @@ const config = {
   "*.{js,jsx,ts,tsx,json,jsonc}": ["prettier --write"],
 
   // Format style and config files
-  "*.{css,scss,md,mdx,yaml,yml,toml}": ["prettier --write"],
+  // Note: TOML files are excluded - Prettier doesn't support TOML natively
+  // If you need TOML formatting, install: pnpm add -D prettier-plugin-toml
+  "*.{css,scss,md,mdx,yaml,yml}": ["prettier --write"],
 
   // Lint JavaScript and TypeScript files
   // ESLint runs after Prettier to catch any remaining issues

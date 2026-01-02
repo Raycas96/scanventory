@@ -43,9 +43,9 @@ This document tracks the development progress of Scanventory, a Shopify app for 
 **Tasks**:
 
 - [ ] Implement OAuth flow with required scopes:
-  - `read_products` - [API scopes](https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes)
-  - `write_inventory` - [Inventory API](https://shopify.dev/docs/api/admin-graphql/latest/mutations/inventoryAdjustQuantities)
-  - `read_locations` - [Locations API](https://shopify.dev/docs/api/admin-graphql/latest/queries/locations)
+      [x] `read_products` - [API scopes](https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes)
+      [x] `write_inventory` - [Inventory API](https://shopify.dev/docs/api/admin-graphql/latest/mutations/inventoryAdjustQuantities)
+      [x] `read_locations` - [Locations API](https://shopify.dev/docs/api/admin-graphql/latest/queries/locations)
 - [ ] Build secure session storage with encrypted cookies/PostgreSQL
 - [ ] Set up PostgreSQL locally with Prisma
 - [ ] Define and create database tables:
