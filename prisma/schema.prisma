@@ -14,21 +14,222 @@ datasource db {
 }
 
 model Session {
-  id            String    @id
-  shop          String
-  state         String
-  isOnline      Boolean   @default(false)
-  scope         String?
-  expires       DateTime?
-  accessToken   String
-  userId        BigInt?
-  firstName     String?
-  lastName      String?
-  email         String?
-  accountOwner  Boolean   @default(false)
-  locale        String?
-  collaborator  Boolean?  @default(false)
-  emailVerified Boolean?  @default(false)
+  id                  String    @id
+  shop                String
+  state               String
+  isOnline            Boolean   @default(false)
+  scope               String?
+  expires             DateTime?
+  accessToken         String
+  userId              BigInt?
+  firstName           String?
+  lastName            String?
+  email               String?
+  accountOwner        Boolean   @default(false)
+  locale              String?
+  collaborator        Boolean?  @default(false)
+  emailVerified       Boolean?  @default(false)
   refreshToken        String?
   refreshTokenExpires DateTime?
+}
+
+model Shop {
+  id   String @id @default(cuid())
+  shop String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  settings       ShopSettings?
+  productHistory producthistory[]
+  productCache   ProductCache[]
+  locationCache  LocationCache[]
+  jobs           Job[] // All jobs for this shop
+
+  @@index([shop])
+}
+
+enum DataRetentionPolicy {
+  DELETE
+  ANONYMIZE
+}
+
+enum ShopTier {
+  TRIAL
+  FREE
+  STARTER
+  PRO
+}
+
+model ShopSettings {
+  id                  String              @id @default(cuid())
+  shopId              String              @unique
+  dataRetentionPolicy DataRetentionPolicy @default(ANONYMIZE)
+  tier                ShopTier            @default(FREE)
+  defaultLocationId   String?
+  enableBatchMode     Boolean             @default(false)
+  cameraPreference    String? // "camera" | "scanner"
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+}
+
+model producthistory {
+  id               String   @id @default(cuid())
+  shopId           String
+  shopifyProductId String
+  barcode          String
+  quantityChange   Int
+  locationId       String?
+  createdAt        DateTime @default(now())
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@index([shopId])
+  @@index([createdAt])
+  @@map("producthistory")
+}
+
+model ProductCache {
+  id               String   @id @default(cuid())
+  shopId           String
+  shopifyProductId String
+  shopifyVariantId String?  // Nullable for product-level cache
+  barcode          String?  // UPC/EAN barcode
+  sku              String?  // SKU code
+  productTitle     String
+  variantTitle     String?  // Variant name (e.g., "Size: Large, Color: Red")
+  productImage     String?  // Product image URL
+  syncedAt         DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  // Indexes for fast lookups
+  @@index([shopId])
+  @@index([shopId, barcode]) // Fast barcode lookup per shop
+  @@index([shopId, sku])      // Fast SKU lookup per shop
+  @@index([shopifyProductId])
+  @@index([syncedAt])         // For finding stale cache entries
+  @@unique([shopId, shopifyVariantId]) // One cache entry per variant per shop
+}
+
+model LocationCache {
+  id              String   @id @default(cuid())
+  shopId          String
+  shopifyLocationId String
+  locationName    String
+  address         String?  // Full address string
+  city            String?
+  province        String?
+  country         String?
+  zip             String?
+  syncedAt        DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@index([shopId])
+  @@index([syncedAt]) // For finding stale cache entries
+  @@unique([shopId, shopifyLocationId]) // One cache entry per location per shop
+}
+
+enum JobType {
+  PRODUCT_SYNC
+  PRODUCT_RE_SYNC
+  CLEANUP_SCAN_LOGS
+  CLEANUP_SESSIONS
+  ANALYTICS_AGGREGATION
+  LOW_STOCK_ALERT
+  OFFLINE_SCAN_SYNC
+  // Add more as needed
+}
+
+enum JobStatus {
+  PENDING
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+  RETRYING
+}
+
+enum JobPriority {
+  LOW
+  NORMAL
+  HIGH
+  CRITICAL
+}
+
+model Job {
+  id     String  @id @default(cuid())
+  shopId String? // Nullable for system-wide jobs (cleanup, etc.)
+
+  // Job identification
+  jobType JobType
+  jobName String? // Human-readable name (e.g., "Product Sync - Initial")
+
+  // Status tracking
+  status   JobStatus   @default(PENDING)
+  priority JobPriority @default(NORMAL)
+
+  // Progress tracking (generic)
+  progress       Int  @default(0) // 0-100 percentage
+  itemsProcessed Int  @default(0)
+  itemsTotal     Int? // null = unknown/streaming
+  itemsSucceeded Int  @default(0)
+  itemsFailed    Int  @default(0)
+
+  // Timing
+  scheduledAt           DateTime? // For scheduled jobs
+  startedAt             DateTime?
+  completedAt           DateTime?
+  durationMs            Int? // Duration in milliseconds
+  estimatedCompletionAt DateTime? // For progress tracking
+
+  // Error handling
+  error        String? // Error message
+  errorCode    String? // Error code for categorization
+  errorDetails Json? // Structured error data
+  retryCount   Int       @default(0)
+  maxRetries   Int       @default(3)
+  nextRetryAt  DateTime? // For retry scheduling
+
+  // Job-specific data (flexible JSON)
+  jobData Json? // Job-specific parameters
+  // Examples:
+  // - Product sync: { syncLimit: 100, strategy: "incremental" }
+  // - Cleanup: { retentionDays: 90, table: "ScanHistory" }
+  // - Analytics: { dateRange: {...}, metrics: [...] }
+
+  // Result data (flexible JSON)
+  resultData Json? // Job results/output
+  // Examples:
+  // - Product sync: { productsSynced: 150, productsFailed: 2 }
+  // - Analytics: { totalScans: 500, topProducts: [...] }
+
+  // Metadata
+  triggeredBy   String? // "system", "user", "scheduled", "webhook", "api"
+  triggeredById String? // User ID or system identifier
+  parentJobId   String? // For job chains/dependencies
+  parentJob     Job?    @relation("JobDependencies", fields: [parentJobId], references: [id])
+  childJobs     Job[]   @relation("JobDependencies")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  shop Shop? @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@index([shopId])
+  @@index([shopId, jobType])
+  @@index([shopId, status])
+  @@index([status, createdAt])
+  @@index([jobType, status])
+  @@index([scheduledAt]) // For scheduled job queries
+  @@index([nextRetryAt]) // For retry scheduling
+  @@index([parentJobId])
 }
