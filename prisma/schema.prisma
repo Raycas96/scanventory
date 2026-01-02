@@ -50,10 +50,7 @@ model Shop {
   @@index([shop])
 }
 
-enum DataRetentionPolicy {
-  DELETE
-  ANONYMIZE
-}
+
 
 enum ShopTier {
   TRIAL
@@ -65,7 +62,6 @@ enum ShopTier {
 model ShopSettings {
   id                  String              @id @default(cuid())
   shopId              String              @unique
-  dataRetentionPolicy DataRetentionPolicy @default(ANONYMIZE)
   tier                ShopTier            @default(FREE)
   defaultLocationId   String?
   enableBatchMode     Boolean             @default(false)
