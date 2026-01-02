@@ -18,7 +18,7 @@
     "graphql-codegen": "graphql-codegen",
     "vite": "vite",
     "typecheck": "react-router typegen && tsc --noEmit",
-    "prepare": "husky && husky install"
+    "prepare": "sh .husky/install.sh"
   },
   "type": "module",
   "engines": {

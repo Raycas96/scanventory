@@ -1,6 +1,5 @@
 #!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
 
 # Run lint-staged to format and lint staged files
 # Tests are excluded from pre-commit (too slow) - run in CI/CD instead
-npx lint-staged
+pnpx lint-staged

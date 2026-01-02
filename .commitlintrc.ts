@@ -29,6 +29,10 @@ const Configuration: UserConfig = {
         "release",
       ],
     ],
+    // Allow uppercase in subject for issue references like "SCAN-0000"
+    // This allows patterns like: "feat: SCAN-0000 add feature"
+    // Disable subject-case rule to allow uppercase issue references
+    "subject-case": [RuleConfigSeverity.Disabled],
   },
 };
 
